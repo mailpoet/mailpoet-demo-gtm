@@ -28,11 +28,19 @@ class InsertGoogleTrackingManager {
     add_action('wp_head', [$this, 'printHeader']);// frontend header
     add_action('admin_head', [$this, 'printHeader']);// admin header
     add_action('wp_body_open', [$this, 'printBody'], 1);// frontend body
+    add_action('wp_footer', [$this, 'printFooter']);
+    add_action('admin_footer', [$this, 'printFooter']);
+    add_action('wp_enqueue_scripts', [$this, 'enqueueAssets']);
+    add_action('admin_enqueue_scripts', [$this, 'enqueueAssets']);
   }
 
   function printHeader() {
     // Ignore admin, feed, robots or trackbacks
     if (is_feed() || is_robots() || is_trackback()) {
+      return;
+    }
+    $cookie_consent = $_COOKIE['cookie_notice_accepted'] ?? false;
+    if (!$cookie_consent) {
       return;
     }
     echo "
@@ -51,11 +59,47 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     if (is_feed() || is_robots() || is_trackback()) {
       return;
     }
+    $cookie_consent = $_COOKIE['cookie_notice_accepted'] ?? false;
+    if (!$cookie_consent) {
+      return;
+    }
     echo '
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MX5LJ9Q" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
     ';
+  }
+
+  function printFooter() {
+    echo '
+<div class="cookie-notice hidden" id="cookie-notice">
+  <div class="container level">
+    <div class="level-left">
+      <p>
+        Our websites use cookies. By continuing, you agree to their use.
+        <a class="text-link" href="https://automattic.com/privacy/" target="blank">Our Privacy Policy</a>
+        <br>
+        <a class="text-link" href="#" id="deny-cookies">Deny cookies</a>
+      </p>
+    </div>
+    <div class="level-right">
+      <a class="button is-primary"
+        href="#"
+        id="accept-cookies">
+          Accept cookies
+      </a>
+    </div>
+  </div>
+</div>
+    ';
+  }
+
+  function enqueueAssets() {
+    wp_register_style('mailpoet_demo_gtm_cookie_banner_css', plugin_dir_url(__FILE__) . 'css/cookie_banner.css');
+    wp_enqueue_style('mailpoet_demo_gtm_cookie_banner_css');
+
+    wp_register_script('mailpoet_demo_gtm_cookie_banner_js', plugin_dir_url(__FILE__) . 'js/cookie_banner.js');
+    wp_enqueue_script('mailpoet_demo_gtm_cookie_banner_js');
   }
 }
 
