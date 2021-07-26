@@ -57,6 +57,7 @@
     text-decoration: none;
     transition: 0.25s all ease-in-out;
     white-space: normal;
+    word-break: normal;
 }
 
 .cookie-notice .container {
@@ -111,7 +112,7 @@
 .cookie-notice .level-right {
     flex-basis: auto;
     flex-grow: 0;
-    flex-shrink: 0;
+    flex-shrink: 1;
 }
 
 @media screen and (max-width: 769px) {
