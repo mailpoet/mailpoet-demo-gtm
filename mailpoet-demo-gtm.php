@@ -35,7 +35,7 @@ class InsertGoogleTrackingManager {
   }
 
   function printHeader() {
-    // Ignore admin, feed, robots or trackbacks
+    // Ignore feed, robots or trackbacks
     if (is_feed() || is_robots() || is_trackback()) {
       return;
     }
