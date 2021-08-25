@@ -35,14 +35,30 @@ class InsertGoogleTrackingManager {
   }
 
   function printHeader() {
-    // Ignore admin, feed, robots or trackbacks
+    // Ignore feed, robots or trackbacks
     if (is_feed() || is_robots() || is_trackback()) {
       return;
     }
+    // Page view tracking
+    // Add page data to dataLayer even though cookie consent is missing
+    // so that it can be tracked after a user gives the consent in cookie banner
+    echo "
+<!-- Google Page Tracking -->
+<script> 
+window.dataLayer = window.dataLayer || [];
+dataLayer.push({
+ 'page_name': '". $this->getPageName() ."',
+ 'site_section': 'demo',
+ 'login_status': 'logged out'
+});
+</script>
+<!-- End Google Page Tracking -->";
+
     $cookie_consent = $_COOKIE['cookie_notice_accepted'] ?? false;
     if (!$cookie_consent) {
       return;
     }
+
     echo "
 <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -100,6 +116,22 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
     wp_register_script('mailpoet_demo_gtm_cookie_banner_js', plugin_dir_url(__FILE__) . 'js/cookie_banner.js');
     wp_enqueue_script('mailpoet_demo_gtm_cookie_banner_js');
+  }
+
+  function getPageName(): string {
+    if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/') {
+      return '/ga-virtual/demo/try';
+    }
+    if (function_exists('get_current_screen')) {
+      $screen = get_current_screen();
+      return "/ga-virtual/demo/" . $this->sanitizeString($screen->id);
+    }
+    // Fallback for unexpected cases
+    return "/ga-virtual/demo/" . $this->sanitizeString($_SERVER['REQUEST_URI']);
+  }
+
+  function sanitizeString($string): string {
+    return preg_replace(['/[_\s]/', '/[\&]/', '/[^[:alnum:]-]/'],['-', 'and', ''], strtolower($string));
   }
 }
 
